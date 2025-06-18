@@ -1,14 +1,12 @@
-import './App.css'
+import "./App.css";
+import MainLayout from "./components/layout/Layout";
 
 function App() {
-
   return (
     <>
-       <h1 class="text-3xl font-bold underline">
-    Hello world!
-  </h1>
+      <MainLayout />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
