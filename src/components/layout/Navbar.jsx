@@ -7,13 +7,24 @@ export default function Navbar() {
   const navLinks = ["About", "News", "Services", "Our Team", "Make Enquiry"];
 
   return (
-    <header className="w-full flex justify-center bg-transparent relative">
-      {" "}
-      {/* Added relative here for mobile dropdown positioning */}
-      <div className="w-full max-w-[1400px] h-[101px] mt-4 mx-auto px-4 py-2 border border-gray-300 bg-white flex items-center justify-between md:px-8">
-        {" "}
-        {/* Adjusted width, added max-w, adjusted padding */}
-        {/* --- LEFT: desktop nav (hidden on mobile) --- */}
+    <header className="w-full flex justify-center bg-transparent">
+      {/* FIXED bar */}
+      <div
+        className="
+          fixed top-0                          /* stick to top on mobile */
+          md:top-6                           /* 24px inset on md+ */
+          left-0 right-0                    /* Span full width by default */
+          md:left-auto md:right-auto        /* Remove left/right on md+ to allow margin auto */
+          md:w-[96%] max-w-[1400px]
+          md:mx-auto                         /* Auto margins for centering on md+ */
+          h-[101px]
+          px-4 py-2
+          border border-gray-300 bg-white
+          flex items-center justify-between
+          z-50 shadow-sm
+        "
+      >
+        {/* Desktop nav links */}
         <nav className="hidden md:flex gap-8 text-sm font-medium text-gray-800">
           {navLinks.map((item) => (
             <a
@@ -25,18 +36,14 @@ export default function Navbar() {
             </a>
           ))}
         </nav>
-        {/* --- MIDDLE: Contact button (always visible) --- */}
-        <button
-          className="
-            w-[148px] h-[36px] flex items-center justify-center gap-2
-            border border-black bg-white text-black text-sm font-medium
-            hover:bg-black hover:text-white transition-colors
-          "
-        >
+
+        {/* Contact button */}
+        <button className="w-[148px] h-[36px] flex items-center justify-center gap-2 border border-black bg-white text-black text-sm font-medium hover:bg-black hover:text-white transition-colors">
           Contact us
           <ArrowRight size={16} strokeWidth={2} />
         </button>
-        {/* --- RIGHT: Hamburger (mobile only) --- */}
+
+        {/* Hamburger (mobile only) */}
         <button
           className="md:hidden bg-[#F9F5F0] p-2"
           onClick={() => setMobileOpen((p) => !p)}
@@ -44,11 +51,16 @@ export default function Navbar() {
           {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
-      {/* ---------- MOBILE DROPDOWN ---------- */}
+
+      {/* Mobile dropdown */}
       {mobileOpen && (
-        <div className="absolute top-full inset-x-0 bg-white border-t border-gray-300 px-6 py-4 flex flex-col gap-4 md:hidden z-50">
-          {" "}
-          {/* Changed top-[101px] to top-full */}
+        <div
+          className="
+            fixed top-[101px] inset-x-0         /* directly under the bar */
+            bg-white border-t border-gray-300
+            px-6 py-4 flex flex-col gap-4 md:hidden z-40
+          "
+        >
           {navLinks.map((item) => (
             <a
               key={item}

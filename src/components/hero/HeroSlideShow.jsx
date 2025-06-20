@@ -37,6 +37,16 @@ export default function HeroSlideShow() {
         draggable={false}
       />
 
+      <div className="absolute left-[350px] bottom-20 flex items-center gap-2 text-white text-2xl tracking-wider">
+        <span className="w-10 text-right">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <span className="opacity-60">—</span>
+        <span className="w-10 text-left opacity-60">
+          {String(slides.length).padStart(2, "0")}
+        </span>
+      </div>
+
       {/* Thumbnail controller */}
       <ThumbnailProgress
         key={index} // <-- forces remount, restarts animation

@@ -1,114 +1,125 @@
-// src/components/quality/CircularCarousel.jsx
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import ProductCard from "./ProductCard";
 
 import product1 from "../../assets/QualityProducts/flower1.webp";
 import product2 from "../../assets/QualityProducts/flower2.webp";
-
 import product3 from "../../assets/QualityProducts/flower3.webp";
 import product4 from "../../assets/QualityProducts/flower4.webp";
 
 // src/components/quality/productData.js
 export const products = [
-  {
-    /** Path (or import) to the portrait image */
-    image: product1,
-    /** Label that appears under the portrait */
-    name: "Apples",
-  },
-  {
-    image: product2,
-    name: "Tomatoes",
-  },
-  {
-    image: product3,
-    name: "Cucumbers",
-  },
-  {
-    image: product4,
-    name: "Carrots",
-  },
+  { image: product1, name: "Apples" },
+  { image: product2, name: "Tomatoes" },
+  { image: product3, name: "Cucumbers" },
+  { image: product4, name: "Carrots" },
 ];
 
-const radius = 160; // radius in px for circular orbit
+/* CONFIG */
+// Adjusted values for MUCH LARGER cards
+const HORIZONTAL_SPREAD = 450; // Increased significantly for larger cards
+const VERTICAL_OFFSET_SIDE_CARDS = 80; // Increased for more vertical separation
+const ROTATION_DEG = 10; // Slightly reduced or kept for subtle tilt
+
+const STEP = 60; // pixels to drag before rotation triggers (can keep this)
+const CARD_BASE_TOP_POSITION = 50; // Adjusted higher to center the much larger cards vertically
+
+// Significantly increased base scale factor for all cards
+const BASE_CARD_SCALE = 1.8; // e.g., 180% of original ProductCard size
 
 export default function CircularCarousel() {
-  const [angle, setAngle] = useState(0);
+  const [index, setIndex] = useState(0); // active (center) card
   const startX = useRef(null);
-  const startAngle = useRef(0);
-  const containerRef = useRef(null);
+  const startIdx = useRef(0);
+  const CARD_COUNT = products.length;
 
-  // Handle drag
-  const handleMouseDown = (e) => {
-    startX.current = e.clientX;
-    startAngle.current = angle;
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+  const clampIndex = (i) => (i + CARD_COUNT) % CARD_COUNT;
+
+  const beginDrag = (clientX) => {
+    startX.current = clientX;
+    startIdx.current = index;
+    document.body.style.cursor = "move";
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", endDrag);
   };
 
-  const handleMouseMove = (e) => {
-    if (startX.current !== null) {
-      const dx = e.clientX - startX.current;
-      setAngle(startAngle.current + dx * 0.3); // adjust sensitivity here
-    }
+  const onMove = (e) => {
+    const dx = e.clientX - startX.current;
+    const delta = Math.round(dx / STEP);
+    setIndex(clampIndex(startIdx.current - delta));
   };
 
-  const handleMouseUp = () => {
+  const endDrag = () => {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", endDrag);
     startX.current = null;
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", handleMouseUp);
+    document.body.style.cursor = "default";
   };
 
-  useEffect(() => {
-    const el = containerRef.current;
-    el.addEventListener("touchstart", onTouchStart, { passive: false });
-    el.addEventListener("touchmove", onTouchMove, { passive: false });
-    el.addEventListener("touchend", onTouchEnd);
-    return () => {
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchmove", onTouchMove);
-      el.removeEventListener("touchend", onTouchEnd);
-    };
-  }, [angle]);
+  // Removed stepRotate as buttons are being removed, but keeping it if you want to use it programmatically
+  // const stepRotate = (dir) => setIndex((prev) => clampIndex(prev + dir));
 
-  let touchStartX = 0;
-
-  const onTouchStart = (e) => {
-    touchStartX = e.touches[0].clientX;
-  };
-
-  const onTouchMove = (e) => {
-    const touchX = e.touches[0].clientX;
-    const dx = touchX - touchStartX;
-    setAngle((prev) => prev + dx * 0.2);
-    touchStartX = touchX;
-  };
-
-  const onTouchEnd = () => {
-    touchStartX = 0;
-  };
+  const visible = [-1, 0, 1].map((offset) => clampIndex(index + offset));
 
   return (
-    <div
-      className="relative w-[400px] h-[400px] mx-auto"
-      onMouseDown={handleMouseDown}
-      ref={containerRef}
-    >
-      {products.map((product, i) => {
-        const theta = (360 / products.length) * i + angle;
-        const rad = (theta * Math.PI) / 180;
-        const x = radius * Math.cos(rad);
-        const y = radius * Math.sin(rad);
+    <div className="relative w-full h-[380px] flex items-center justify-center select-none mt-10">
+      {/* Removed Arrows */}
+      {/* <button
+        aria-label="prev"
+        onClick={() => stepRotate(-1)}
+        className="absolute left-4 md:left-20 top-1/2 -translate-y-1/2 text-2xl bg-white rounded-full shadow w-10 h-10 flex items-center justify-center z-30"
+      >
+        ❮
+      </button>
+      <button
+        aria-label="next"
+        onClick={() => stepRotate(1)}
+        className="absolute right-4 md:right-20 top-1/2 -translate-y-1/2 text-2xl bg-white rounded-full shadow w-10 h-10 flex items-center justify-center z-30"
+      >
+        ❯
+      </button> */}
+
+      {/* Cards */}
+      {visible.map((idx, i) => {
+        const offset = i - 1; // -1 (left) 0 (center) 1 (right)
+
+        let translateX = 0;
+        let translateY = 0;
+        let rotateDeg = 0;
+        let zIndex = 10;
+        let scaleFactor = BASE_CARD_SCALE;
+
+        if (offset === -1) {
+          translateX = -HORIZONTAL_SPREAD / 2;
+          translateY = VERTICAL_OFFSET_SIDE_CARDS;
+          rotateDeg = -ROTATION_DEG;
+          zIndex = 5;
+          scaleFactor *= 0.8; // Make side cards 80% of BASE_CARD_SCALE
+        } else if (offset === 1) {
+          translateX = HORIZONTAL_SPREAD / 2;
+          translateY = VERTICAL_OFFSET_SIDE_CARDS; // CORRECTED: This was 'VERTATION_DEG'
+          rotateDeg = ROTATION_DEG;
+          zIndex = 5;
+          scaleFactor *= 0.8; // Make side cards 80% of BASE_CARD_SCALE
+        } else {
+          zIndex = 20;
+          scaleFactor *= 1.05; // Make center card slightly larger than BASE_CARD_SCALE
+        }
 
         return (
           <div
-            key={product.name + i}
-            className="absolute transition-transform duration-200"
+            key={products[idx].name}
+            className={`transition-all duration-300 ease-out origin-center select-none`}
             style={{
-              transform: `translate(${x + 150}px, ${y + 150}px)`,
+              position: "absolute",
+              top: CARD_BASE_TOP_POSITION,
+              left: "50%",
+              transform: `translateX(-50%) translateY(${translateY}px) translateX(${translateX}px) rotate(${rotateDeg}deg) scale(${scaleFactor})`,
+              zIndex: zIndex,
+              cursor: "move",
             }}
+            onPointerDown={(e) => beginDrag(e.clientX)}
           >
-            <ProductCard {...product} />
+            <ProductCard {...products[idx]} />
           </div>
         );
       })}
